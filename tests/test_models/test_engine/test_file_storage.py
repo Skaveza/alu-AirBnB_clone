@@ -112,6 +112,26 @@ class TestFileStorage_methods(unittest.TestCase):
         # Check if the reloaded object is present
         self.assertIn(base_model.__class__.__name__ +
                       "." + base_model.id, objects)
+        
+    def test_reload_deserializes_json_to_objects(self):
+        # Create a new FileStorage instance
+        file_storage = FileStorage()
+
+        # Call reload to deserialize the JSON file
+        file_storage.reload()
+
+        # Get the objects dictionary
+        objects = file_storage.all()
+
+        # Check if the reloaded object is present
+        self.assertIn("BaseModel.123", objects)
+        reloaded_object = objects["BaseModel.123"]
+
+        # Check if the reloaded object has the expected attributes
+        self.assertEqual(reloaded_object.id, "123")
+        self.assertEqual(reloaded_object.created_at, datetime(2022, 1, 1))
+        self.assertEqual(reloaded_object.updated_at, datetime(2022, 1, 1))
+
 
 
 if __name__ == "__main__":
