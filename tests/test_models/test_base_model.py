@@ -14,13 +14,12 @@ class TestBaseModel(unittest.TestCase):
         self.assertIsNotNone(my_model.updated_at)
 
     def test_save(self):
-        my_model = BaseModel()
-
-        initial_updated_at = my_model.updated_at
-
-        current_updated_at = my_model.save()
-
-        self.assertNotEqual(initial_updated_at, current_updated_at)
+        base_model = BaseModel()
+        base_model.save()
+        objects = FileStorage._FileStorage__objects
+        assert f"{base_model.__class__.__name__}.{base_model.id}" in objects
+        assert base_model.updated_at > base_model.created_at
+        os.remove("file.json")
 
     def test_to_dict(self):
         my_model = BaseModel()
