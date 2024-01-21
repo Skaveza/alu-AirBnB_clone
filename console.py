@@ -1,50 +1,45 @@
 #!/usr/bin/python3
 """
-This module defines the console for our project.
+This file defines the console class which will
+serve as the entry point of the entire project
 """
-import cmd
-import re
-from shlex import split
+
+from cmd import Cmd
 from models import storage
+from models.engine.errors import *
+import shlex
 from models.base_model import BaseModel
 from models.user import User
 from models.state import State
 from models.city import City
-from models.place import Place
 from models.amenity import Amenity
+from models.place import Place
 from models.review import Review
 
 
-class HBNBCommand(cmd.Cmd):
+# Global variable of registered models
+classes = storage.models
+
+
+class HBNBCommand(Cmd):
     """
-    Defines the console.
-    """
+    The Console based driver of the AirBnb Clone
+    All interactions with the system is done via
+    this class"""
 
     prompt = "(hbnb) "
 
-    def do_quit(self, arg):
-        """
-        Quit to exit the program.
-        """
+    """Commands"""
+    def do_EOF(self, args):
+        """Exit the programme in non-interactive mode"""
         return True
 
-    def do_EOF(self, arg):
-        """
-        EOF to exit the program.
-        """
+    def do_quit(self, args):
+        """Quit command exit the program"""
         return True
 
-    def emptyline(self):
-        """
-        Ignore an empty line.
-        """
-        pass
-
-    def do_create(self, arg):
-        """
-            Creates a new instance of a class,
-            saves it (to the JSON file) and prints the id.
-            Usage: create <class_name>
+    def do_create(self, args):
+        """Create an instance of Model given its name eg.
         $ create ModelName
         Throws an Error if ModelName is missing or doesnt exist"""
         args, n = parse(args)
@@ -63,9 +58,7 @@ class HBNBCommand(cmd.Cmd):
             pass
 
     def do_show(self, arg):
-        """
-        Prints the string representation of an instance
-        based on the class name and id.
+        """Show an Instance of Model base on its ModelName and id eg.
         $ show MyModel instance_id
         Print error message if either MyModel or instance_id is missing
         Print an Error message for wrong MyModel or instance_id"""
@@ -87,11 +80,8 @@ class HBNBCommand(cmd.Cmd):
             print("** Too many argument for show **")
             pass
 
-
     def do_destroy(self, arg):
-        """
-        Deletes an instance based on the class name and id.
-        """
+        """Deletes an Instance of Model base on its ModelName and id."""
         args, n = parse(arg)
 
         if not n:
@@ -109,12 +99,10 @@ class HBNBCommand(cmd.Cmd):
             print("** Too many argument for destroy **")
             pass
 
-
-    def do_all(self, arg):
-        """
-        Prints all string representations of all instances
-        based or not on the class name.
-        """
+    def do_all(self, args):
+        """Usage: all or all <class> or <class>.all()
+        Display string representations of all instances of a given class.
+        If no class is specified, displays all instantiated objects."""
         args, n = parse(args)
 
         if n < 2:
@@ -127,9 +115,7 @@ class HBNBCommand(cmd.Cmd):
             pass
 
     def do_update(self, arg):
-        """
-        Updates an instance based on the class name and id
-        by adding or updating an attribute.
+        """Updates an instance base on its id eg
         $ update Model id field value
         Throws errors for missing arguments"""
         args, n = parse(arg)
@@ -149,12 +135,54 @@ class HBNBCommand(cmd.Cmd):
             except InstanceNotFoundError:
                 print("** no instance found **")
 
+    def do_models(self, arg):
+        """Print all registered Models"""
+        print(*classes)
+
+    def handle_class_methods(self, arg):
+        """Handle Class Methods
+        <cls>.all(), <cls>.show() etc
+        """
+
+        printable = ("all(", "show(", "count(", "create(")
+        try:
+            val = eval(arg)
+            for x in printable:
+                if x in arg:
+                    print(val)
+                    break
+            return
+        except AttributeError:
+            print("** invalid method **")
+        except InstanceNotFoundError:
+            print("** no instance found **")
+        except TypeError as te:
+            field = te.args[0].split()[-1].replace("_", " ")
+            field = field.strip("'")
+            print(f"** {field} missing **")
+        except Exception as e:
+            print("** invalid syntax **")
+            pass
+
+    def default(self, arg):
+        """Override default method to handle class methods"""
+        if '.' in arg and arg[-1] == ')':
+            if arg.split('.')[0] not in classes:
+                print("** class doesn't exist **")
+                return
+            return self.handle_class_methods(arg)
+        return Cmd.default(self, arg)
+
+    def emptyline(self):
+        """Override empty line to do nothing"""
+        return
+
+
+def parse(line: str):
+    """splits a line by spaces"""
+    args = shlex.split(line)
+    return args, len(args)
+
 
 if __name__ == "__main__":
-    """
-    Main function
-    """
     HBNBCommand().cmdloop()
-
-        
-
