@@ -12,7 +12,7 @@ from models.state import State
 from models.city import City
 from models.place import Place
 from models.amenity import Amenity
-from models.review import Reviewx
+from models.review import Review
 
 
 class HBNBCommand(cmd.Cmd):
@@ -45,168 +45,109 @@ class HBNBCommand(cmd.Cmd):
             Creates a new instance of a class,
             saves it (to the JSON file) and prints the id.
             Usage: create <class_name>
-       """
-        # If the class name is missing,
-        # print ** class name missing ** (ex: $ create)
-        if len(args) < 1:
+        $ create ModelName
+        Throws an Error if ModelName is missing or doesnt exist"""
+        args, n = parse(args)
+
+        if not n:
             print("** class name missing **")
-            return
-        # If the class name doesn’t exist,
-        # print ** class doesn't exist ** (ex: $ create MyModel)
-
-        # convert the args to a list
-        args = args.split()
-
-        # the 1st element of the list is the class name
-        class_name = args[0]
-        if class_name not in self.__all_classes:
+        elif args[0] not in classes:
             print("** class doesn't exist **")
-            return
-        # print(self.__all_classes)
-        # eval() interprets a string as a piece of python code
-        new_object = eval(class_name + "()")
-        new_object.save()
-        print(new_object.id)
-        storage.save()
+        elif n == 1:
+            # temp = classes[args[0]]()
+            temp = eval(args[0])()
+            print(temp.id)
+            temp.save()
+        else:
+            print("** Too many argument for create **")
+            pass
 
     def do_show(self, arg):
         """
         Prints the string representation of an instance
         based on the class name and id.
-        """
-         arg_list = args.split()
-        objdict = storage.all()
-        if len(arg_list) == 0:
+        $ show MyModel instance_id
+        Print error message if either MyModel or instance_id is missing
+        Print an Error message for wrong MyModel or instance_id"""
+        args, n = parse(arg)
+
+        if not n:
             print("** class name missing **")
-            return
-        elif arg_list[0] not in self.__all_classes:
-            print("** class doesn't exist **")
-            return
-        elif len(arg_list) == 1:
+        elif n == 1:
             print("** instance id missing **")
-            return
-
-        object_key = "{}.{}".format(arg_list[0], arg_list[1])
-
-        if object_key not in objdict:
-            print("** no instance found **")
-            return
+        elif n == 2:
+            try:
+                inst = storage.find_by_id(*args)
+                print(inst)
+            except ModelNotFoundError:
+                print("** class doesn't exist **")
+            except InstanceNotFoundError:
+                print("** no instance found **")
         else:
-            print(objdict[object_key])
+            print("** Too many argument for show **")
+            pass
 
 
     def do_destroy(self, arg):
         """
         Deletes an instance based on the class name and id.
         """
-        arg_list = args.split()
-        all_objects = storage.all()
-        if len(arg_list) == 0:
+        args, n = parse(arg)
+
+        if not n:
             print("** class name missing **")
-            return
-        class_name = arg_list[0]
-        if class_name not in self.__all_classes:
-            print("** class doesn't exist **")
-            return
-        if len(arg_list) == 1:
+        elif n == 1:
             print("** instance id missing **")
-            return
-        instance_id = arg_list[1]
-
-        object_key = "{}.{}".format(class_name, instance_id)
-
-        if object_key not in all_objects.keys():
-            print("** no instance found **")
+        elif n == 2:
+            try:
+                storage.delete_by_id(*args)
+            except ModelNotFoundError:
+                print("** class doesn't exist **")
+            except InstanceNotFoundError:
+                print("** no instance found **")
         else:
-            del all_objects[object_key]
-            storage.save()
+            print("** Too many argument for destroy **")
+            pass
+
 
     def do_all(self, arg):
         """
         Prints all string representations of all instances
         based or not on the class name.
         """
-        arg_list = args.split()
-        all_objects = storage.all()
-        object_list = []
-        if len(arg_list) == 0:
-            for obj in all_objects.values():
-                object_list.append(obj.__str__())
-            print(list(object_list))
-            return
+        args, n = parse(args)
 
-        if len(arg_list) > 0 and arg_list[0] not in self.__all_classes:
-            print("** class doesn't exist **")
-            return
-        class_name = arg_list[0]
-        object_list = []
-
-        for obj in all_objects:
-            if class_name == all_objects[obj].__class__.__name__:
-                object_list.append(str(all_objects[obj]))
-        print(object_list)
+        if n < 2:
+            try:
+                print(storage.find_all(*args))
+            except ModelNotFoundError:
+                print("** class doesn't exist **")
+        else:
+            print("** Too many argument for all **")
+            pass
 
     def do_update(self, arg):
         """
         Updates an instance based on the class name and id
         by adding or updating an attribute.
-        """
-        arg_list = args.split()
-        all_objects = storage.all()
-
-        if len(arg_list) == 0:
+        $ update Model id field value
+        Throws errors for missing arguments"""
+        args, n = parse(arg)
+        if not n:
             print("** class name missing **")
-            return False
-        class_name = arg_list[0]
-
-        if class_name not in self.__all_classes:
-            print("** class doesn't exist **")
-            return False
-
-        if len(arg_list) == 1:
+        elif n == 1:
             print("** instance id missing **")
-            return False
-
-        instance_id = arg_list[1]
-        object_key = "{}.{}".format(class_name, instance_id)
-
-        if object_key not in all_objects:
-            print("** no instance found **")
-            return False
-
-        if len(arg_list) == 2:
+        elif n == 2:
             print("** attribute name missing **")
-            return False
-        attribute_name = arg_list[2]
-
-        if len(arg_list) == 3:
+        elif n == 3:
             print("** value missing **")
-            return False
-        attribute_value = arg_list[3]
-
-        if attribute_value.isdigit():
-            if isinstance(attribute_value, float):
-                attribute_value = float(attribute_value)
-            elif isinstance(attribute_value, int):
-                attribute_value = int(attribute_value)
-
-        # update BaseModel 00c0c670-e5f3-4603-9aa1-3caca5ee0e75
-        # email "aibnb@mail.com"
-
-        obj = all_objects[object_key]
-        # check if the attribute exist already
-        if attribute_name in obj.to_dict():
-            attribute_original_type = type(obj[attribute_name])
-            attribute_value = attribute_original_type(attribute_value)
-
-            if attribute_original_type in {str, int, float}:
-                attribute_value = attribute_original_type(attribute_value)
-                obj[attribute_name] = attribute_value
-        # if it doesn’t exist we add it
         else:
-            obj.__dict__.update({attribute_name: attribute_value})
-
-        storage.save()
+            try:
+                storage.update_one(*args[0:4])
+            except ModelNotFoundError:
+                print("** class doesn't exist **")
+            except InstanceNotFoundError:
+                print("** no instance found **")
 
 
 if __name__ == "__main__":
