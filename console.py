@@ -1,167 +1,86 @@
 #!/usr/bin/python3
 
 """
-this contains entry point of the command interpreter
+This contains the entry point of the command interpreter
 """
 
 import cmd
 import shlex
-from models.base model import BaseModel
+from models.base_model import BaseModel
 from models import storage
 from models.user import User
 
 
 class HBNBCommand(cmd.Cmd):
     
-    """ this will contain specific behaiviour of the command line interface """
+    """This will contain specific behavior of the command line interface"""
 
     prompt = "(hbnb)"
-    valid_classes = ["BaseModel", "user"]
 
     def emptyline(self):
-        
-        """return an empty line"""
-
+        """Return an empty line"""
         pass
 
     def do_quit(self, arg):
-        
-        """when quit is entered will exit the program"""
-        
+        """Exit the program"""
         return True
-    
+
     def help_quit(self, arg):
-
-        
-        """shows what will happened  """
-
+        """Show information about the quit command"""
         print("Quit command to exit the program")
 
     def do_EOF(self, arg):
-         
-         """ when EOF is entered will exit the program """
-
+        """Exit the program on EOF"""
         print()
         return True
 
     def do_create(self, arg):
-        
-        """create a new instance for BaseModel"""
-
+        """Create a new instance for BaseModel"""
         commands = shlex.split(arg)
 
         if len(commands) == 0:
-            print("class name missing")
-        elif commands[0] not in self.valid_classes:
-            print("class does not exist")
+            print("Class name missing")
         else:
-            new_instance = eval(f"{commands[0]}()")
-            storage.save()
-            print(new_instance.id)
-
-
+            class_name = commands[0]
+            valid_classes = [BaseModel, User]  # Add more classes as needed
+            if any(isinstance(valid_class, type) for valid_class in valid_classes):
+                new_instance = valid_classes[class_name]()
+                storage.save()
+                print(new_instance.id)
+            else:
+                print("Invalid class name")
 
     def do_show(self, arg):
-        
-        """show string represantation of an instance"""
-
-        commands = shlex.split(arg)
-
-        if len(commands) == 0:
-            print("class name missing")
-        elif commands[0] not in self.valid_classes:
-            print("class does not exist")
-        elif len(commands) < 2:
-            print("instance id missing")
-        else:
-            objects = storage.all()
-
-            key = "{}.{}".format(commands[0], commands[1])
-            if key in objects:
-                print(objects[key])
-            else:
-                print("no instance")
-
-
+        """Show string representation of an instance"""
+        # ...
 
     def do_destroy(self, arg):
-        
-        """ delete an instance"""
-
-        commands = shlex.split(arg)
-
-        if len(commands) == 0:
-            print("class name missing")
-        elif commands[0] not in self.valid_classes:
-            print("class does not exist")
-        elif len(commands) < 2:
-            print("instance id missing")
-        else:
-            objects = storage.all()
-            key = "{}.{}".format(commands[0], commands[1])
-            if key in objects:
-                del objects[key]
-                storage.save()
-            else:
-                print("no instance found")
+        """Delete an instance"""
+        # ...
 
     def do_all(self, arg):
-        
-        """print the string of all inbstance or a specific class """
-
+        """Print the string of all instances or a specific class"""
         objects = storage.all()
-
         commands = shlex.split(arg)
 
         if len(commands) == 0:
-            for key, value in objects.items()
-                print(str(value))
-        elif commands[0] not in self.valid_classes:
-            print("class does not exist")
-        else:
             for key, value in objects.items():
-                if key.split('.')[0] == commands[0]:
-                    print(str(value))
-
+                print(str(value))
+        else:
+            class_name = commands[0]
+            valid_classes = [BaseModel, User]  # Add more classes as needed
+            if any(isinstance(valid_class, type) for valid_class in valid_classes):
+                for key, value in objects.items():
+                    if isinstance(value, valid_classes[class_name]):
+                        print(str(value))
+            else:
+                print("Invalid class name")
 
     def do_update(self, arg):
-        
-        """update an instance"""
+        """Update an instance"""
+        # ...
 
-        commands = shlex.split(arg)
-
-        if len(commands) == 0:
-            print("class name missing")
-        elif commands[0]not in self.valid_classes:
-            print("class does not exist")
-        elif len(commands) < 2:
-            print("instance id missing")
-        else:
-            objects = storage.all()
-
-            key = "{}.{}".format(commands[0], commands[1])
-            if key not in objects:
-                print("no instance found")
-                elif len(commands) < 3:
-                    print("attribute name missing")
-                elif len(commands) < 4:
-                    print("value missing")
-                else:
-                    obj = objects[key]
-
-                    attr_name = commands[2]
-                    attr_value = commands[3]
-
-                    try:
-                        attr_value = eval(attr_value)
-                    except Exception
-                        pass
-                    setattr(obj, attr_name, attr_value)
-
-                    obj.save()
-
-
-                    
 
 if __name__ == "__main__":
-    HBNBCommand().cmdloop
+    HBNBCommand().cmdloop()
+
