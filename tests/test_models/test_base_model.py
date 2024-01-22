@@ -1,8 +1,10 @@
 """
-This is test for the base model file
+This is a test for the base model file
 """
 import unittest
+import os
 from models.base_model import BaseModel
+from models import storage
 
 
 class TestBaseModel(unittest.TestCase):
@@ -16,10 +18,11 @@ class TestBaseModel(unittest.TestCase):
     def test_save(self):
         base_model = BaseModel()
         base_model.save()
-        objects = FileStorage._FileStorage__objects
-        assert f"{base_model.__class__.__name__}.{base_model.id}" in objects
-        assert base_model.updated_at > base_model.created_at
-        os.remove("file.json")
+        objects = storage.all()
+        key = "{}.{}".format(base_model.__class__.__name__, base_model.id)
+        self.assertIn(key, objects)
+        stored_model = objects[key]
+        self.assertGreater(stored_model.updated_at, stored_model.created_at)
 
     def test_to_dict(self):
         my_model = BaseModel()
