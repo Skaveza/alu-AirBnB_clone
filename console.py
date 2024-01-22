@@ -120,11 +120,17 @@ class HBNBCommand(cmd.Cmd):
         elif len(args) < 4:
             print("** value missing **")
         else:
-            key = args[0] + "." + args[1]
+            class_name = args[0]
+            instance_id = args[1]
+            attribute_name = args[2]
+            # Combine the remaining arguments as the attribute value
+            attribute_value = ' '.join(args[3:])
+            key = f"{class_name}.{instance_id}"
+            
             if key not in models.storage.all():
                 print("** no instance found **")
             else:
-                setattr(models.storage.all()[key], args[2], args[3])
+                setattr(models.storage.all()[key], attribute_name, attribute_value)
                 models.storage.save()
 
 
