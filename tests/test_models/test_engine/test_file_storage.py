@@ -15,6 +15,17 @@ class TestFileStorage_instantiation(unittest.TestCase):
     """
         tests instantiation of the 'FileStorage' class.
     """
+    def setUp(self):
+        self.model = BaseModel()
+        self.model.id = "123"
+        storage.save()
+
+    def tearDown(self):
+        del self.model
+        try:
+            os.remove("file.json")
+        except FileNotFoundError:
+            pass
 
     def test_FileStorage_instantiation_no_args(self):
         self.assertEqual(type(FileStorage()), FileStorage)
@@ -31,6 +42,11 @@ class TestFileStorage_instantiation(unittest.TestCase):
 
     def test_storage_initializes(self):
         self.assertEqual(type(models.storage), FileStorage)
+        def test_reload_deserializes_json_to_objects(self):
+        storage.reload()
+        objects = storage.all()
+        key = "{}.{}".format(self.model.__class__.__name__, self.model.id)
+        self.assertIn(key, objects)
 
 
 class TestFileStorage_methods(unittest.TestCase):
