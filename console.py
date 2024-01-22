@@ -5,7 +5,7 @@ This module defines the console for our project
 import cmd
 import models
 import shlex
-
+from models.user import User  # Import the User class
 
 class HBNBCommand(cmd.Cmd):
     """
@@ -34,7 +34,7 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, arg):
         """
-        Creates a new instance of BaseModel,
+        Creates a new instance of BaseModel or User,
         saves it (to the JSON file) and prints the id
         """
         if not arg:
