@@ -39,7 +39,7 @@ class HBNBCommand(cmd.Cmd):
     def do_create(self, arg):
         commands = shlex.split(arg)
 
-        if len(commands) == 0:
+        if not commands:
             print("Class name missing")
         else:
             class_name = commands[0]
@@ -61,7 +61,7 @@ class HBNBCommand(cmd.Cmd):
         objects = storage.all()
         commands = shlex.split(arg)
 
-        if len(commands) == 0:
+        if not commands:
             for key, value in objects.items():
                 print(str(value))
         else:
